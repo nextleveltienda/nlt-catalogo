@@ -622,15 +622,11 @@ let carrito = []; // array de ids
 // ── INIT ──
 async function init() {
   await cargarProductos();
-window._filtrarPorCategoria = function(cat) {
-  filtroActivo = cat;
-  document.querySelectorAll('.filter-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent === cat);
-  });
-  renderProductos();
-};
 document.getElementById('filter-select')?.addEventListener('change', function() {
-  window._filtrarPorCategoria(this.value);
+  const cat = this.value;
+  // Hacer click en el botón de filtro correspondiente (mismo código que ya funciona)
+  const btn = [...document.querySelectorAll('.filter-btn')].find(b => b.textContent === cat);
+  if(btn) btn.click();
 });
 
 }
