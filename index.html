@@ -670,12 +670,14 @@ function renderGrid() {
     const sinStock = p.disponible === false;
     const esNuevo = i < 3 && !sinStock;
     const enCarrito = carrito.includes(p.id);
+    const stockBajo = p.stock != null && p.stock > 0 && p.stock <= 3 && !sinStock;
     return `
     <div class="card" onclick="abrirSheet(${productos.indexOf(p)})" style="${sinStock ? 'opacity:.5' : ''}">
       ${foto
         ? `<img class="card-img" src="${foto}" alt="${p.nombre||''}" loading="lazy">`
         : `<div class="card-img-placeholder">👕</div>`}
       ${sinStock ? '<span class="badge-sin-stock">Sin stock</span>' : ''}
+      ${stockBajo ? '<span class="badge-sin-stock" style="background:rgba(200,100,0,.85);border-color:#a05000">⚡ Últimas ${p.stock}</span>' : ''}
       ${esNuevo && !sinStock ? '<span class="badge-nuevo">✨ NUEVO</span>' : ''}
       ${enCarrito ? '<span class="badge-en-carrito">✓ En carrito</span>' : ''}
       <div class="card-body">
@@ -706,6 +708,7 @@ function abrirSheet(idx) {
     ${p.talles ? `
     <div class="sheet-label">Talles</div>
     <div class="talles-row">${p.talles.split(',').map(t => `<span class="talle-chip">${t.trim()}</span>`).join('')}</div>` : ''}
+    ${p.stock != null && !sinStock ? `<div class="sheet-label" style="margin-top:8px">Stock disponible: <b style="color:${p.stock<=3?'#e07820':'var(--silver)'}">${p.stock} unidad${p.stock!==1?'es':''}</b></div>` : ''}
     ${sinStock
       ? `<div class="btn-sin-stock">Sin stock por ahora</div>`
       : `
