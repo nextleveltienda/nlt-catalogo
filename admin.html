@@ -715,7 +715,7 @@ function renderProductos() {
           onclick="toggleStock('${p.id}', ${!disp})">
           ${disp ? '🚫' : '✅'}
         </button>
-        <button class="action-btn btn-delete" title="Eliminar" onclick="eliminar('${p.id}', '${(p.nombre||'').replace(/'/g,'\\'')}')">🗑</button>
+        <button class="action-btn btn-delete" title="Eliminar" onclick="eliminar('${p.id}', '${(p.nombre||'').replace(/'/g,'')}')">🗑</button>
       </div>
     </div>`;
   }).join('');
