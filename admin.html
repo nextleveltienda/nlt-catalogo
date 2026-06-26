@@ -563,20 +563,40 @@
         <label>Categoría</label>
         <select id="f-cat">
           <option value="">Sin categoría</option>
-          <option>Remeras</option>
-          <option>Buzos</option>
-          <option>Pantalones</option>
-          <option>Camperas</option>
-          <option>Accesorios</option>
-          <option>Calzado</option>
-          <option>Vestidos</option>
-          <option>Otras</option>
+          <optgroup label="👕 Ropa">
+            <option>Remeras</option>
+            <option>Buzos</option>
+            <option>Pantalones</option>
+            <option>Camperas</option>
+            <option>Accesorios</option>
+            <option>Calzado</option>
+            <option>Vestidos</option>
+            <option>Otras</option>
+          </optgroup>
+          <optgroup label="📱 Tecnología">
+            <option>Celulares</option>
+            <option>Notebooks</option>
+            <option>Consolas</option>
+            <option>Accesorios Tech</option>
+            <option>Audio</option>
+            <option>Otros Tech</option>
+          </optgroup>
+          <optgroup label="🏠 Hogar">
+            <option>Electrodomésticos</option>
+            <option>Muebles</option>
+            <option>Decoración</option>
+            <option>Otros Hogar</option>
+          </optgroup>
         </select>
       </div>
     </div>
     <div class="field">
       <label>Talles disponibles</label>
       <input type="text" id="f-talles" placeholder="Ej: S, M, L, XL">
+    </div>
+    <div class="field">
+      <label>Stock (cantidad)</label>
+      <input type="number" id="f-stock" placeholder="Ej: 5" inputmode="numeric" min="0">
     </div>
     <div class="field">
       <label>Descripción</label>
@@ -686,7 +706,7 @@ function renderProductos() {
       <div class="prod-info">
         <div class="prod-nombre">${p.nombre || 'Sin nombre'}</div>
         <div class="prod-precio">${formatPrecio(p.precio)}</div>
-        <div class="prod-meta">${p.categoria || ''} ${p.talles ? '· ' + p.talles : ''}</div>
+        <div class="prod-meta">${p.categoria || ''} ${p.talles ? '· ' + p.talles : ''} ${p.stock != null ? '· Stock: <b>' + p.stock + '</b>' : ''}</div>
         <span class="badge-disp ${disp ? 'ok' : 'no'}">${disp ? '✓ Disponible' : '✗ Sin stock'}</span>
       </div>
       <div class="prod-actions">
@@ -792,7 +812,7 @@ async function analizarConIA() {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: f.type, data: b64 } },
-            { type: 'text', text: `Sos asistente de una tienda de ropa argentina llamada NLT. Analizá esta foto de una prenda y respondé SOLO con JSON válido sin backticks ni explicación extra:\n{"nombre":"nombre descriptivo de la prenda","precio":NUMERO_EN_PESOS_ARGENTINOS,"categoria":"Remeras|Buzos|Pantalones|Camperas|Accesorios|Calzado|Vestidos|Otras","talles":"S, M, L","descripcion":"descripción corta y atractiva en español rioplatense para WhatsApp, máximo 2 oraciones"}` }
+            { type: 'text', text: `Sos asistente de una tienda argentina llamada NLT que vende ropa, tecnología y hogar. Analizá esta foto y respondé SOLO con JSON válido sin backticks ni explicación extra:\n{"nombre":"nombre descriptivo de la prenda","precio":NUMERO_EN_PESOS_ARGENTINOS,"categoria":"Remeras|Buzos|Pantalones|Camperas|Accesorios|Calzado|Vestidos|Otras|Celulares|Notebooks|Consolas|Accesorios Tech|Audio|Otros Tech|Electrodomésticos|Muebles|Decoración|Otros Hogar","talles":"S, M, L o vacío si no aplica","descripcion":"descripción corta y atractiva en español rioplatense para WhatsApp, máximo 2 oraciones"}` }
           ]
         }]
       })
@@ -868,6 +888,7 @@ async function publicar() {
         talles: document.getElementById('f-talles').value.trim() || null,
         descripcion: document.getElementById('f-desc').value.trim() || null,
         fotos: fotosUrls,
+        stock: document.getElementById('f-stock').value !== '' ? parseInt(document.getElementById('f-stock').value) : null,
         disponible: true
       })
     });
@@ -875,7 +896,7 @@ async function publicar() {
     if (!res.ok) throw new Error('Error al publicar');
 
     // Reset form
-    ['f-nombre','f-precio','f-talles','f-desc'].forEach(id => document.getElementById(id).value = '');
+    ['f-nombre','f-precio','f-talles','f-desc','f-stock'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-cat').value = '';
     imgFiles = [];
     renderPreviews();
