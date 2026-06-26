@@ -484,6 +484,34 @@
 <!-- APP -->
 <div id="app">
 
+<!-- MODAL EDICIÓN -->
+<div class="modal-overlay" id="modal-edicion">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar producto</div>
+    <input type="hidden" id="edit-id">
+    <div class="field"><label>Nombre *</label><input type="text" id="edit-nombre" placeholder="Nombre del producto"></div>
+    <div class="field-row">
+      <div class="field"><label>Precio ($) *</label><input type="number" id="edit-precio" inputmode="numeric"></div>
+      <div class="field"><label>Categoría</label>
+        <select id="edit-cat">
+          <option value="">Sin categoría</option>
+          <optgroup label="👕 Ropa"><option>Remeras</option><option>Buzos</option><option>Pantalones</option><option>Camperas</option><option>Accesorios</option><option>Calzado</option><option>Vestidos</option><option>Otras</option></optgroup>
+          <optgroup label="📱 Tecnología"><option>Celulares</option><option>Notebooks</option><option>Consolas</option><option>Accesorios Tech</option><option>Audio</option><option>Otros Tech</option></optgroup>
+          <optgroup label="🏠 Hogar"><option>Electrodomésticos</option><option>Muebles</option><option>Decoración</option><option>Otros Hogar</option></optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Talles</label><input type="text" id="edit-talles" placeholder="Ej: S, M, L, XL"></div>
+    <div class="field"><label>Stock (cantidad)</label><input type="number" id="edit-stock" placeholder="Ej: 5" inputmode="numeric" min="0"></div>
+    <div class="field"><label>Descripción</label><textarea id="edit-desc" placeholder="Descripción del producto..."></textarea></div>
+    <div class="field"><label>Fotos</label><div class="edit-fotos-preview" id="edit-fotos-preview"></div><input type="file" id="edit-file-in" accept="image/*" multiple style="display:none" onchange="editHandleFiles(this.files)"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save" onclick="guardarEdicion()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <header>
   <div class="header-logo">
     <div class="header-logo-mark">NL</div>
@@ -710,6 +738,7 @@ function renderProductos() {
         <span class="badge-disp ${disp ? 'ok' : 'no'}">${disp ? '✓ Disponible' : '✗ Sin stock'}</span>
       </div>
       <div class="prod-actions">
+        <button class="action-btn btn-edit" title="Editar" onclick="abrirEdicion('${p.id}')">✏️</button>
         <button class="action-btn ${disp ? 'btn-stock-off' : 'btn-stock-on'}"
           title="${disp ? 'Marcar sin stock' : 'Marcar disponible'}"
           onclick="toggleStock('${p.id}', ${!disp})">
@@ -924,6 +953,76 @@ function formatPrecio(p) {
 function copiarLink() {
   navigator.clipboard.writeText('https://catalogo.nlt.com.ar').then(() => showToast('📋 Link copiado!'));
 }
+
+// --- EDICIÓN ---
+let editFotosActuales = [], editFotosNuevas = [];
+function abrirEdicion(id) {
+  const p = productos.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-nombre').value = p.nombre || '';
+  document.getElementById('edit-precio').value = p.precio || '';
+  document.getElementById('edit-cat').value = p.categoria || '';
+  document.getElementById('edit-talles').value = p.talles || '';
+  document.getElementById('edit-stock').value = p.stock != null ? p.stock : '';
+  document.getElementById('edit-desc').value = p.descripcion || '';
+  editFotosActuales = Array.isArray(p.fotos) ? [...p.fotos] : [];
+  editFotosNuevas = [];
+  renderEditFotos();
+  document.getElementById('modal-edicion').classList.add('open');
+}
+function cerrarModal() {
+  document.getElementById('modal-edicion').classList.remove('open');
+  editFotosActuales = []; editFotosNuevas = [];
+}
+function renderEditFotos() {
+  const preview = document.getElementById('edit-fotos-preview');
+  const fotos = editFotosActuales.map((url, i) => `<div class="edit-foto-thumb"><img src="${url}"><button class="edit-foto-del" onclick="editQuitarFoto(${i},'actual')">×</button></div>`).join('');
+  const nuevas = editFotosNuevas.map((f, i) => `<div class="edit-foto-thumb"><img src="${URL.createObjectURL(f)}"><button class="edit-foto-del" onclick="editQuitarFoto(${i},'nueva')">×</button></div>`).join('');
+  const addBtn = (editFotosActuales.length + editFotosNuevas.length) < 5 ? `<div class="edit-add-foto" onclick="document.getElementById('edit-file-in').click()">+</div>` : '';
+  preview.innerHTML = fotos + nuevas + addBtn;
+}
+function editQuitarFoto(i, tipo) {
+  if (tipo === 'actual') editFotosActuales.splice(i, 1); else editFotosNuevas.splice(i, 1);
+  renderEditFotos();
+}
+function editHandleFiles(files) {
+  const nuevas = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, 5 - editFotosActuales.length - editFotosNuevas.length);
+  editFotosNuevas = [...editFotosNuevas, ...nuevas];
+  renderEditFotos();
+  document.getElementById('edit-file-in').value = '';
+}
+async function guardarEdicion() {
+  const id = document.getElementById('edit-id').value;
+  const nombre = document.getElementById('edit-nombre').value.trim();
+  const precio = document.getElementById('edit-precio').value.trim();
+  if (!nombre || !precio) { showToast('Completá nombre y precio'); return; }
+  const btn = document.querySelector('.btn-save');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const fotosUrls = [...editFotosActuales];
+    for (const f of editFotosNuevas) {
+      const ext = f.name.split('.').pop();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, {
+        method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': f.type }, body: f
+      });
+      if (up.ok) fotosUrls.push(`${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`);
+    }
+    const stockVal = document.getElementById('edit-stock').value;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/catalogo_productos?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ nombre, precio: parseInt(precio), categoria: document.getElementById('edit-cat').value || null, talles: document.getElementById('edit-talles').value.trim() || null, descripcion: document.getElementById('edit-desc').value.trim() || null, stock: stockVal !== '' ? parseInt(stockVal) : null, fotos: fotosUrls })
+    });
+    if (!res.ok) throw new Error();
+    showToast('✅ Producto actualizado', 'green');
+    cerrarModal();
+    await cargarProductos();
+  } catch(e) { showToast('Error al guardar'); }
+  finally { btn.disabled = false; btn.textContent = 'Guardar cambios'; }
+}
+document.getElementById('modal-edicion')?.addEventListener('click', function(e) { if (e.target === this) cerrarModal(); });
 
 let toastTimer;
 function showToast(msg, type = '') {
