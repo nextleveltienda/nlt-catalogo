@@ -622,24 +622,18 @@ let carrito = []; // array de ids
 // ── INIT ──
 async function init() {
   await cargarProductos();
-document.getElementById('filter-select')?.addEventListener('change', function() {
-  filtroActivo = this.value;
+window._filtrarPorCategoria = function(cat) {
+  filtroActivo = cat;
   document.querySelectorAll('.filter-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent === this.value);
+    b.classList.toggle('active', b.textContent === cat);
   });
   renderProductos();
-});
-}
-
-// Exponer funciones al scope global para el select
-window.setFiltro = function(cat, btn) {
-  filtroActivo = cat;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  const sel = document.getElementById('filter-select');
-  if(sel) sel.value = cat;
-  renderProductos();
 };
+document.getElementById('filter-select')?.addEventListener('change', function() {
+  window._filtrarPorCategoria(this.value);
+});
+
+}
 
 async function cargarProductos() {
   try {
