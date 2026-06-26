@@ -1090,67 +1090,6 @@ async function guardarEdicion() {
 }
 document.getElementById('modal-edicion')?.addEventListener('click', function(e) { if (e.target === this) cerrarModal(); });
 
-let editFotosActuales=[],editFotosNuevas=[];
-function abrirEdicion(id){
-  const p=productos.find(x=>x.id===id); if(!p)return;
-  document.getElementById('edit-id').value=id;
-  document.getElementById('edit-nombre').value=p.nombre||'';
-  document.getElementById('edit-precio').value=p.precio||'';
-  document.getElementById('edit-cat').value=p.categoria||'';
-  document.getElementById('edit-talles').value=p.talles||'';
-  document.getElementById('edit-stock').value=p.stock!=null?p.stock:'';
-  document.getElementById('edit-desc').value=p.descripcion||'';
-  editFotosActuales=Array.isArray(p.fotos)?[...p.fotos]:[];
-  editFotosNuevas=[];
-  renderEditFotos();
-  document.getElementById('modal-edicion').classList.add('open');
-}
-function cerrarModal(){
-  document.getElementById('modal-edicion').classList.remove('open');
-  editFotosActuales=[];editFotosNuevas=[];
-}
-function renderEditFotos(){
-  const prev=document.getElementById('edit-fotos-preview');
-  const fa=editFotosActuales.map((url,i)=>`<div class="edit-foto-thumb"><img src="${url}"><button class="edit-foto-del" onclick="editQuitarFoto(${i},'actual')">×</button></div>`).join('');
-  const fn=editFotosNuevas.map((f,i)=>`<div class="edit-foto-thumb"><img src="${URL.createObjectURL(f)}"><button class="edit-foto-del" onclick="editQuitarFoto(${i},'nueva')">×</button></div>`).join('');
-  const add=(editFotosActuales.length+editFotosNuevas.length)<5?`<div class="edit-add-foto" onclick="document.getElementById('edit-file-in').click()">+</div>`:'';
-  prev.innerHTML=fa+fn+add;
-}
-function editQuitarFoto(i,tipo){
-  if(tipo==='actual')editFotosActuales.splice(i,1);else editFotosNuevas.splice(i,1);
-  renderEditFotos();
-}
-function editHandleFiles(files){
-  const n=Array.from(files).filter(f=>f.type.startsWith('image/')).slice(0,5-editFotosActuales.length-editFotosNuevas.length);
-  editFotosNuevas=[...editFotosNuevas,...n];
-  renderEditFotos();
-  document.getElementById('edit-file-in').value='';
-}
-async function guardarEdicion(){
-  const id=document.getElementById('edit-id').value;
-  const nombre=document.getElementById('edit-nombre').value.trim();
-  const precio=document.getElementById('edit-precio').value.trim();
-  if(!nombre||!precio){showToast('Completá nombre y precio');return;}
-  const btn=document.querySelector('.btn-save');
-  btn.disabled=true;btn.textContent='Guardando...';
-  try{
-    const fotosUrls=[...editFotosActuales];
-    for(const f of editFotosNuevas){
-      const ext=f.name.split('.').pop();
-      const path=`${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const up=await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`,{method:'POST',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':f.type},body:f});
-      if(up.ok)fotosUrls.push(`${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`);
-    }
-    const sv=document.getElementById('edit-stock').value;
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/catalogo_productos?id=eq.${id}`,{method:'PATCH',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({nombre,precio:parseInt(precio),categoria:document.getElementById('edit-cat').value||null,talles:document.getElementById('edit-talles').value.trim()||null,descripcion:document.getElementById('edit-desc').value.trim()||null,stock:sv!==''?parseInt(sv):null,fotos:fotosUrls})});
-    if(!res.ok)throw new Error();
-    showToast('✅ Guardado!','green');cerrarModal();await cargarProductos();
-  }catch(e){showToast('Error al guardar');}
-  finally{btn.disabled=false;btn.textContent='Guardar cambios';}
-}
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('modal-edicion').addEventListener('click',function(e){if(e.target===this)cerrarModal();});
-});
 let toastTimer;
 function showToast(msg, type = '') {
   const t = document.getElementById('toast');
