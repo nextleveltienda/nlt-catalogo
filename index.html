@@ -567,7 +567,7 @@
   <div class="filters" id="filters">
     <button class="filter-btn active" onclick="setFiltro('Todos', this)">Todos</button>
   </div>
-  <select class="filter-select" id="filter-select" onchange="setFiltroSelect(this)">
+  <select class="filter-select" id="filter-select">
     <option value="Todos">Todos</option>
   </select>
 </div>
@@ -622,7 +622,24 @@ let carrito = []; // array de ids
 // ── INIT ──
 async function init() {
   await cargarProductos();
+document.getElementById('filter-select')?.addEventListener('change', function() {
+  filtroActivo = this.value;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === this.value);
+  });
+  renderProductos();
+});
 }
+
+// Exponer funciones al scope global para el select
+window.setFiltro = function(cat, btn) {
+  filtroActivo = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const sel = document.getElementById('filter-select');
+  if(sel) sel.value = cat;
+  renderProductos();
+};
 
 async function cargarProductos() {
   try {
