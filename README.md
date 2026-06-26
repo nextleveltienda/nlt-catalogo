@@ -93,3 +93,5 @@ nlt-catalogo/
 
 ## Stack
 HTML/CSS/JS puro · Supabase (tabla + Storage) · Anthropic API (IA de fotos) · Vercel
+
+<!-- v2: stock + tecnologia + hogar -->
