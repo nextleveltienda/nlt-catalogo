@@ -147,6 +147,21 @@
     color: var(--bg);
     font-weight: 500;
   }
+  .filter-select {
+    display: none;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    color: var(--white);
+    font-size: 14px;
+    outline: none;
+  }
+  @media (max-width: 480px) {
+    .filters { display: none; }
+    .filter-select { display: block; }
+  }
 
   /* GRID */
   main { padding: 14px; }
@@ -552,6 +567,9 @@
   <div class="filters" id="filters">
     <button class="filter-btn active" onclick="setFiltro('Todos', this)">Todos</button>
   </div>
+  <select class="filter-select" id="filter-select" onchange="setFiltroSelect(this)">
+    <option value="Todos">Todos</option>
+  </select>
 </div>
 
 <main>
@@ -627,6 +645,18 @@ function renderCategorias() {
   document.getElementById('filters').innerHTML = cats.map(c =>
     `<button class="filter-btn ${c === filtroActivo ? 'active' : ''}" onclick="setFiltro('${c}', this)">${c}</button>`
   ).join('');
+  const sel = document.getElementById('filter-select');
+  if(sel) {
+    sel.innerHTML = cats.map(c => `<option value="${c}" ${c === filtroActivo ? 'selected' : ''}>${c}</option>`).join('');
+  }
+}
+
+function setFiltroSelect(sel) {
+  filtroActivo = sel.value;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === sel.value);
+  });
+  renderProductos();
 }
 
 function setFiltro(cat, btn) {
@@ -677,7 +707,7 @@ function renderGrid() {
         ? `<img class="card-img" src="${foto}" alt="${p.nombre||''}" loading="lazy">`
         : `<div class="card-img-placeholder">👕</div>`}
       ${sinStock ? '<span class="badge-sin-stock">Sin stock</span>' : ''}
-      ${stockBajo ? '<span class="badge-sin-stock" style="background:rgba(200,100,0,.85);border-color:#a05000">⚡ Últimas ${p.stock}</span>' : ''}
+      ${stockBajo ? `<span class="badge-sin-stock" style="background:rgba(200,100,0,.85);border-color:#a05000">⚡ Últimas ${p.stock}</span>` : ''}
       ${esNuevo && !sinStock ? '<span class="badge-nuevo">✨ NUEVO</span>' : ''}
       ${enCarrito ? '<span class="badge-en-carrito">✓ En carrito</span>' : ''}
       <div class="card-body">
