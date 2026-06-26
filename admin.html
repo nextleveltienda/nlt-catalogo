@@ -615,13 +615,13 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── CONFIG ──────────────────────────────────────────────────
+// ---
 const SUPABASE_URL = 'https://giumbgatuwnnjnvdqkdr.supabase.co';
 const SUPABASE_ANON_KEY = 'TU_ANON_KEY_AQUI';
 const STORAGE_BUCKET = 'fotos-productos';
-const PIN_CORRECTO = '3773'; // ← CAMBIÁ ESTO antes de deployar
+const PIN_CORRECTO = '3773';
 
-// ─── LOGIN ───────────────────────────────────────────────────
+// ---
 function onPin(idx) {
   const val = document.getElementById('p'+idx).value;
   if (val.length === 1 && idx < 3) {
@@ -658,7 +658,7 @@ if (sessionStorage.getItem('nlt_admin') === '1') {
   window.addEventListener('DOMContentLoaded', () => document.getElementById('p0').focus());
 }
 
-// ─── TABS ────────────────────────────────────────────────────
+// ---
 function switchTab(t) {
   ['productos','nuevo'].forEach(x => {
     document.getElementById('panel-'+x).classList.toggle('active', x===t);
@@ -666,7 +666,7 @@ function switchTab(t) {
   });
 }
 
-// ─── PRODUCTOS ───────────────────────────────────────────────
+// ---
 let productos = [];
 
 async function cargarProductos() {
@@ -753,7 +753,7 @@ async function eliminar(id, nombre) {
   } catch(e) { showToast('Error al eliminar'); }
 }
 
-// ─── UPLOAD ──────────────────────────────────────────────────
+// ---
 let imgFiles = [];
 
 function handleFiles(files) {
@@ -787,7 +787,7 @@ function quitarFoto(idx) {
   if (imgFiles.length === 0) document.getElementById('btn-ia').disabled = true;
 }
 
-// ─── IA ──────────────────────────────────────────────────────
+// ---
 async function analizarConIA() {
   const btn = document.getElementById('btn-ia');
   btn.disabled = true;
@@ -839,7 +839,7 @@ async function analizarConIA() {
   btn.disabled = false;
 }
 
-// ─── PUBLICAR ────────────────────────────────────────────────
+// ---
 async function publicar() {
   const nombre = document.getElementById('f-nombre').value.trim();
   const precio = document.getElementById('f-precio').value.trim();
@@ -915,7 +915,7 @@ async function publicar() {
   }
 }
 
-// ─── UTILS ───────────────────────────────────────────────────
+// ---
 function formatPrecio(p) {
   if (!p) return '';
   return '$' + parseInt(p).toLocaleString('es-AR');
