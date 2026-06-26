@@ -483,8 +483,6 @@
 
 <!-- APP -->
 <div id="app">
-
-<!-- MODAL EDICIÓN -->
 <div class="modal-overlay" id="modal-edicion">
   <div class="modal">
     <div class="modal-title">✏️ Editar producto</div>
@@ -642,6 +640,34 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+
+<!-- MODAL EDICIÓN -->
+<div class="modal-overlay" id="modal-edicion">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar producto</div>
+    <input type="hidden" id="edit-id">
+    <div class="field"><label>Nombre *</label><input type="text" id="edit-nombre" placeholder="Nombre del producto"></div>
+    <div class="field-row">
+      <div class="field"><label>Precio ($) *</label><input type="number" id="edit-precio" inputmode="numeric"></div>
+      <div class="field"><label>Categoría</label>
+        <select id="edit-cat">
+          <option value="">Sin categoría</option>
+          <optgroup label="👕 Ropa"><option>Remeras</option><option>Buzos</option><option>Pantalones</option><option>Camperas</option><option>Accesorios</option><option>Calzado</option><option>Vestidos</option><option>Otras</option></optgroup>
+          <optgroup label="📱 Tecnología"><option>Celulares</option><option>Notebooks</option><option>Consolas</option><option>Accesorios Tech</option><option>Audio</option><option>Otros Tech</option></optgroup>
+          <optgroup label="🏠 Hogar"><option>Electrodomésticos</option><option>Muebles</option><option>Decoración</option><option>Otros Hogar</option></optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Talles</label><input type="text" id="edit-talles" placeholder="Ej: S, M, L, XL"></div>
+    <div class="field"><label>Stock (cantidad)</label><input type="number" id="edit-stock" placeholder="Ej: 5" inputmode="numeric" min="0"></div>
+    <div class="field"><label>Descripción</label><textarea id="edit-desc" placeholder="Descripción del producto..."></textarea></div>
+    <div class="field"><label>Fotos</label><div class="edit-fotos-preview" id="edit-fotos-preview"></div><input type="file" id="edit-file-in" accept="image/*" multiple style="display:none" onchange="editHandleFiles(this.files)"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save" onclick="guardarEdicion()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
 <script>
 // ---
 const SUPABASE_URL = 'https://giumbgatuwnnjnvdqkdr.supabase.co';
