@@ -302,16 +302,30 @@
     margin: 0 auto 18px;
   }
 
+  .sheet-carousel {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .sheet-carousel-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    border-radius: var(--radius);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sheet-carousel-track::-webkit-scrollbar { display: none; }
   .sheet-img {
     width: 100%;
-    border-radius: var(--radius);
+    flex: 0 0 100%;
     aspect-ratio: 4/3;
     object-fit: cover;
     background: var(--bg3);
-    margin-bottom: 14px;
+    scroll-snap-align: center;
   }
   .sheet-img-placeholder {
     width: 100%;
+    flex: 0 0 100%;
     border-radius: var(--radius);
     aspect-ratio: 4/3;
     background: var(--bg3);
@@ -319,8 +333,59 @@
     align-items: center;
     justify-content: center;
     font-size: 64px;
-    margin-bottom: 14px;
   }
+  .sheet-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .sheet-carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border2);
+    transition: all .2s;
+    cursor: pointer;
+  }
+  .sheet-carousel-dot.active {
+    background: var(--silver);
+    width: 16px;
+    border-radius: 4px;
+  }
+  .sheet-carousel-counter {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,.65);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+  }
+  .sheet-carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    backdrop-filter: blur(4px);
+    z-index: 2;
+  }
+  .sheet-carousel-arrow.prev { left: 8px; }
+  .sheet-carousel-arrow.next { right: 8px; }
 
   .sheet-nombre {
     font-size: 19px;
@@ -731,14 +796,29 @@ let sheetIdx = -1;
 function abrirSheet(idx) {
   sheetIdx = idx;
   const p = productos[idx];
-  const foto = Array.isArray(p.fotos) && p.fotos[0];
+  const fotos = Array.isArray(p.fotos) ? p.fotos.filter(Boolean) : [];
   const sinStock = p.disponible === false;
   const enCarrito = carrito.includes(p.id);
 
+  const carruselHTML = fotos.length > 0
+    ? `
+    <div class="sheet-carousel">
+      <div class="sheet-carousel-track" id="carousel-track" onscroll="onCarouselScroll()">
+        ${fotos.map(f => `<img class="sheet-img" src="${f}" alt="${p.nombre||''}">`).join('')}
+      </div>
+      ${fotos.length > 1 ? `
+        <span class="sheet-carousel-counter" id="carousel-counter">1/${fotos.length}</span>
+        <button class="sheet-carousel-arrow prev" onclick="moverCarrusel(-1)" aria-label="Foto anterior">‹</button>
+        <button class="sheet-carousel-arrow next" onclick="moverCarrusel(1)" aria-label="Foto siguiente">›</button>
+        <div class="sheet-carousel-dots" id="carousel-dots">
+          ${fotos.map((_, i) => `<span class="sheet-carousel-dot ${i===0?'active':''}" onclick="irAFoto(${i})"></span>`).join('')}
+        </div>
+      ` : ''}
+    </div>`
+    : `<div class="sheet-img-placeholder">👕</div>`;
+
   document.getElementById('sheet-content').innerHTML = `
-    ${foto
-      ? `<img class="sheet-img" src="${foto}" alt="${p.nombre||''}">`
-      : `<div class="sheet-img-placeholder">👕</div>`}
+    ${carruselHTML}
     <div class="sheet-nombre">${p.nombre || ''}</div>
     <div class="sheet-precio">${formatPrecio(p.precio)}</div>
     ${p.descripcion ? `<div class="sheet-label">Descripción</div><div class="sheet-desc">${p.descripcion}</div>` : ''}
@@ -767,6 +847,32 @@ function closeSheet(e, id) {
     document.getElementById(id).classList.remove('open');
     document.body.style.overflow = '';
   }
+}
+
+// ── CARRUSEL DE FOTOS ──
+function moverCarrusel(dir) {
+  const track = document.getElementById('carousel-track');
+  if (!track) return;
+  const w = track.clientWidth;
+  track.scrollBy({ left: dir * w, behavior: 'smooth' });
+}
+
+function irAFoto(i) {
+  const track = document.getElementById('carousel-track');
+  if (!track) return;
+  const w = track.clientWidth;
+  track.scrollTo({ left: i * w, behavior: 'smooth' });
+}
+
+function onCarouselScroll() {
+  const track = document.getElementById('carousel-track');
+  if (!track) return;
+  const w = track.clientWidth;
+  const idx = Math.round(track.scrollLeft / w);
+  const dots = document.querySelectorAll('#carousel-dots .sheet-carousel-dot');
+  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  const counter = document.getElementById('carousel-counter');
+  if (counter) counter.textContent = `${idx + 1}/${dots.length}`;
 }
 
 // ── CARRITO ──
